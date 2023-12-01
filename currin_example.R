@@ -170,36 +170,6 @@ grid.arrange(g1, g2, g3, g4, ncol = 4)
 dev.off()
 
 
-# Figure 5 (no longer needed)
-# pdf("alpha_estimation.pdf", width=6, height=2.5)
-# z.val <- c(ML.out$z[[2]][1:ML.out$n.save[[3]][2]], ML.out$z[[3]][1:ML.out$n.save[[3]][3]])
-# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:3), ML.out$n.save[[3]][2:3]),
-#                        z=abs(z.val))
-# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-# 
-# g1 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-#   theme_bw()+ggtitle(expression(italic(L)==3)) + theme(plot.title = element_text(hjust = 0.5))
-# 
-# g1 <- g1 + geom_abline(intercept = lm.fit$coefficients[1], 
-#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-# 
-# z.val <- unlist(ML.out$z[2:4])
-# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:4), ML.out$n[2:4]),
-#                        z=abs(z.val))
-# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-# 
-# g2 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-#   theme_bw() + ggtitle(expression(italic(L)==4)) + theme(plot.title = element_text(hjust = 0.5))
-# 
-# g2 <- g2 + geom_abline(intercept = lm.fit$coefficients[1], 
-#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-# 
-# grid.arrange(g1, g2, ncol = 2)
-# dev.off()
 
 
 
@@ -261,7 +231,7 @@ df2$meshsize <- factor(MM/tt^as.numeric(df2$meshsize))
 df1$meshsize <- factor(df1$meshsize, levels = c(8, 4, 2, 1, 0.5))
 df2$meshsize <- factor(df2$meshsize, levels = c(8, 4, 2, 1, 0.5))
 
-# Figure 6
+# Figure 5
 my.cols <- brewer.pal(6, "Blues")
 pdf(paste0("illustration epsilon.pdf"), width=11, height=2.8)
 g1 <- ggplot(data=df1, aes(x=factor(epsilon))) +

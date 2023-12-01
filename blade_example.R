@@ -38,9 +38,11 @@ log.fg <- TRUE
 
 set.seed(1)
 X.test <- maximinLHS(20,2)
-y.test <- f(X.test,l=5, MM, tt, return.time=TRUE)
-# load("2d_jet_blade_true.Rdata")
-# y.test <- true.save
+#y.test <- f(X.test,l=5, MM, tt, return.time=TRUE) 
+# running this high fidelity can take a long time
+# therefore, the outputs of y.test are stored as "2d_jet_blade_true.Rdata"
+load("2d_jet_blade_true.Rdata")
+y.test <- true.save
 
 ML.out <- stacking_design(cost, d, n.init, epsilon=5, alpha, 
                           tt, MM, Lmax, f, k, xnew, n.max, 
@@ -151,40 +153,7 @@ g4 <- g4 + theme(axis.text.y = element_text(size = 12))
 grid.arrange(g1, g2, g3, g4, ncol = 4)
 dev.off()
 
-
-# Figure 12 (no longer needed)
-# pdf("alpha_estimation_blade.pdf", width=6, height=2.5)
-# z.val <- c(ML.out$z[[2]][1:ML.out$n.save[[3]][2]], ML.out$z[[3]][1:ML.out$n.save[[3]][3]])
-# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:3), ML.out$n.save[[3]][2:3]),
-#                        z=abs(z.val))
-# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-# 
-# g1 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-#   theme_bw()+ggtitle(expression(italic(L)==3)) + theme(plot.title = element_text(hjust = 0.5))
-# 
-# g1 <- g1 + geom_abline(intercept = lm.fit$coefficients[1], 
-#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-# 
-# z.val <- unlist(ML.out$z[2:4])
-# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:4), ML.out$n[2:4]),
-#                        z=abs(z.val))
-# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-# 
-# g2 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-#   theme_bw() + ggtitle(expression(italic(L)==4)) + theme(plot.title = element_text(hjust = 0.5))
-# 
-# g2 <- g2 + geom_abline(intercept = lm.fit$coefficients[1], 
-#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-# 
-# grid.arrange(g1, g2, ncol = 2)
-# dev.off()
-
-
-# Figure 13
+# Figure 10
 pdf("blade_prediction.pdf", width=7.5, height = 3.3)
 par(mfrow=c(1,2))
 par(mar=c(2,1,0,0))

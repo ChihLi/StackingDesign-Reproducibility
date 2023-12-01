@@ -66,16 +66,13 @@ print(max(abs((y.true - ML.out$mean))))
 # total computational cost
 print(sum(ML.out$n * ML.out$cost))
 
-# Figure 8
+# Figure 7
 pdf("poisson_design.pdf", width=11.2, height=2.4)
 layout(matrix(c(rep(1:5,each=2),6),nrow=1))
 par(mar=c(4, 4, 2, 1))
 for(l in 1:length(ML.out$n)){
   title.l <- bquote(italic(L) ~ "=" ~ .(l))
   plot(xnew.ori, y.true,col=1,type="n",lty=2,lwd=1, xlab="x", ylab="y", main=title.l, ylim=c(0.2,0.7))
-  # polygon(c(rev(xnew.ori), xnew.ori), 
-  #         c(rev(rowSums(ML.out$P[,1:l,drop=FALSE])-sqrt(rowSums(ML.out$V[,1:l,drop=FALSE]))*qnorm(0.975)- ML.out$B[,l]), 
-  #           rowSums(ML.out$P[,1:l,drop=FALSE])+sqrt(rowSums(ML.out$V[,1:l,drop=FALSE]))*qnorm(0.975)+ML.out$B[,l]), col = 'grey80', border = NA)
   polygon(c(rev(xnew.ori), xnew.ori), 
           c(rev(rowSums(ML.out$P[,1:l,drop=FALSE])-rowSums(sqrt(t(t(ML.out$V[,1:l,drop=FALSE])*ML.out$n[1:l])))- ML.out$B[,l]), 
             rowSums(ML.out$P[,1:l,drop=FALSE])+rowSums(sqrt(t(t(ML.out$V[,1:l,drop=FALSE])*ML.out$n[1:l])))+ML.out$B[,l]), col = 'grey80', border = NA)
@@ -174,50 +171,6 @@ g5 <- g5 + theme(axis.text.y = element_text(size = 12))
 grid.arrange(g1, g2, g3, g4, g5, ncol = 5)
 dev.off()
 
-# Figure 9 (no longer needed)
-# pdf("alpha_estimation_poisson.pdf", width=9, height=2.5)
-# z.val <- c(ML.out$z[[2]][1:ML.out$n.save[[3]][2]], ML.out$z[[3]][1:ML.out$n.save[[3]][3]])
-# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:3), ML.out$n.save[[3]][2:3]),
-#                        z=abs(z.val))
-# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-# 
-# g1 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-#   theme_bw()+ggtitle(expression(italic(L)==3)) + theme(plot.title = element_text(hjust = 0.5))
-# 
-# g1 <- g1 + geom_abline(intercept = lm.fit$coefficients[1], 
-#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-# 
-# z.val <- unlist(ML.out$z[2:4])
-# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:4), ML.out$n[2:4]),
-#                        z=abs(z.val))
-# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-# 
-# g2 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-#   theme_bw() + ggtitle(expression(italic(L)==4)) + theme(plot.title = element_text(hjust = 0.5))
-# 
-# g2 <- g2 + geom_abline(intercept = lm.fit$coefficients[1], 
-#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-# 
-# z.val <- unlist(ML.out$z[2:5])
-# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:5), ML.out$n[2:5]),
-#                        z=abs(z.val))
-# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-# 
-# g3 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-#   theme_bw() + ggtitle(expression(italic(L)==5)) + theme(plot.title = element_text(hjust = 0.5))
-# 
-# g3 <- g3 + geom_abline(intercept = lm.fit$coefficients[1], 
-#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-# 
-# grid.arrange(g1, g2, g3, ncol = 3)
-# dev.off()
-
 
 # Run stacking designs with various epsilon choices
 # L2 norm 
@@ -273,7 +226,7 @@ colnames(df1)[4] <- colnames(df2)[4] <- "meshsize"
 df1$meshsize <- factor(df1$meshsize, levels = c(0.2, 0.1, 0.05, 0.025, 0.0125))
 df2$meshsize <- factor(df2$meshsize, levels = c(0.2, 0.1, 0.05, 0.025, 0.0125))
 
-# Figure 10
+# Figure 8
 my.cols <- brewer.pal(6, "Blues")
 pdf(paste0("poisson epsilon.pdf"), width=11, height=2.8)
 g1 <- ggplot(data=df1, aes(x=factor(epsilon))) +
