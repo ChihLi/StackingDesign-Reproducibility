@@ -122,84 +122,84 @@ pdf("synthetic_design_size.pdf", width=10, height=2)
 g1 <- ggplot(sample.size.df[1:4,], aes(x = name,y = value ,fill = stage)) +
   geom_bar(stat = "identity") +
   labs(y = "sample size", x = "") + 
-  ylim(c(0,116)) + 
+  ylim(c(0,140)) + 
   scale_x_discrete(labels=c(expression(n[1]), expression(n[2]), expression(n[3]), expression(n[4]))) +
   scale_fill_manual(breaks=c(1:4), values = c("lightblue1","lightblue2", "lightblue3", "lightblue4")) +
   coord_flip() + theme( panel.background = element_blank(), legend.position = "none")
 
-g1 <- g1 + geom_text(aes(name, total + 3, label = total, fill = NULL), size = 4, data = sample.size.df[sample.size.df$stage==1 & sample.size.df$value > 0,])
+g1 <- g1 + geom_text(aes(name, total + 4, label = total, fill = NULL), size = 4, data = sample.size.df[sample.size.df$stage==1 & sample.size.df$total > 0,])
 g1 <- g1 + theme(axis.text.y = element_text(size = 12))
 
 g2 <- ggplot(sample.size.df[1:8,], aes(x = name,y = value ,fill = stage)) +
   geom_bar(stat = "identity") +
   labs(y = "sample size", x = "") + 
-  ylim(c(0,116)) + 
+  ylim(c(0,140)) + 
   scale_x_discrete(labels=c(expression(n[1]), expression(n[2]), expression(n[3]), expression(n[4]))) +
   scale_fill_manual(breaks=c(1:4), values = c("lightblue1","lightblue2", "lightblue3", "lightblue4")) +
   coord_flip() + theme( panel.background = element_blank(), legend.position = "none")
 
-g2 <- g2 + geom_text(aes(name, total + 3, label = total, fill = NULL), size = 4,
-                     data = sample.size.df[sample.size.df$stage==2 & sample.size.df$value > 0,])
+g2 <- g2 + geom_text(aes(name, total + 4, label = total, fill = NULL), size = 4,
+                     data = sample.size.df[sample.size.df$stage==2 & sample.size.df$total > 0,])
 g2 <- g2 + theme(axis.text.y = element_text(size = 12))
 
 g3 <- ggplot(sample.size.df[1:12,], aes(x = name,y = value ,fill = stage)) +
   geom_bar(stat = "identity") +
   labs(y = "sample size", x = "") + 
-  ylim(c(0,116)) + 
+  ylim(c(0,140)) + 
   scale_x_discrete(labels=c(expression(n[1]), expression(n[2]), expression(n[3]), expression(n[4]))) +
   scale_fill_manual(breaks=c(1:4), values = c("lightblue1","lightblue2", "lightblue3", "lightblue4")) +
   coord_flip() + theme( panel.background = element_blank(), legend.position = "none")
 
-g3 <- g3 + geom_text(aes(name, total + 3, label = total, fill = NULL), size = 4,
-                     data = sample.size.df[sample.size.df$stage==3 & sample.size.df$value > 0,])
+g3 <- g3 + geom_text(aes(name, total + 4, label = total, fill = NULL), size = 4,
+                     data = sample.size.df[sample.size.df$stage==3 & sample.size.df$total > 0,])
 g3 <- g3 + theme(axis.text.y = element_text(size = 12))
 
 g4 <- ggplot(sample.size.df, aes(x = name,y = value ,fill = stage)) +
   geom_bar(stat = "identity") +
   labs(y = "sample size", x = "") + 
-  ylim(c(0,116)) + 
+  ylim(c(0,140)) + 
   scale_x_discrete(labels=c(expression(n[1]), expression(n[2]), expression(n[3]), expression(n[4]))) +
   scale_fill_manual(breaks=c(1:4), values = c("lightblue1","lightblue2", "lightblue3", "lightblue4")) +
   coord_flip() + theme( panel.background = element_blank(), legend.position = "none")
 
-g4 <- g4 + geom_text(aes(name, total + c(1,5,5,5), label = total, fill = NULL), size = 4,
-                     data = sample.size.df[sample.size.df$stage==4 & sample.size.df$value > 0,])
+g4 <- g4 + geom_text(aes(name, total + c(1,6,6,6), label = total, fill = NULL), size = 4,
+                     data = sample.size.df[sample.size.df$stage==4 & sample.size.df$total > 0,])
 g4 <- g4 + theme(axis.text.y = element_text(size = 12))
 
 grid.arrange(g1, g2, g3, g4, ncol = 4)
 dev.off()
 
 
-# Figure 5
-pdf("alpha_estimation.pdf", width=6, height=2.5)
-z.val <- c(ML.out$z[[2]][1:ML.out$n.save[[3]][2]], ML.out$z[[3]][1:ML.out$n.save[[3]][3]])
-df_alpha <- data.frame(mesh_l=rep(1/tt^(2:3), ML.out$n.save[[3]][2:3]),
-                       z=abs(z.val))
-lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-
-g1 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-  geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-  xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-  theme_bw()+ggtitle(expression(italic(L)==3)) + theme(plot.title = element_text(hjust = 0.5))
-
-g1 <- g1 + geom_abline(intercept = lm.fit$coefficients[1], 
-                       slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-
-z.val <- unlist(ML.out$z[2:4])
-df_alpha <- data.frame(mesh_l=rep(1/tt^(2:4), ML.out$n[2:4]),
-                       z=abs(z.val))
-lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-
-g2 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-  geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-  xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-  theme_bw() + ggtitle(expression(italic(L)==4)) + theme(plot.title = element_text(hjust = 0.5))
-
-g2 <- g2 + geom_abline(intercept = lm.fit$coefficients[1], 
-                       slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-
-grid.arrange(g1, g2, ncol = 2)
-dev.off()
+# Figure 5 (no longer needed)
+# pdf("alpha_estimation.pdf", width=6, height=2.5)
+# z.val <- c(ML.out$z[[2]][1:ML.out$n.save[[3]][2]], ML.out$z[[3]][1:ML.out$n.save[[3]][3]])
+# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:3), ML.out$n.save[[3]][2:3]),
+#                        z=abs(z.val))
+# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
+# 
+# g1 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
+#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
+#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
+#   theme_bw()+ggtitle(expression(italic(L)==3)) + theme(plot.title = element_text(hjust = 0.5))
+# 
+# g1 <- g1 + geom_abline(intercept = lm.fit$coefficients[1], 
+#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
+# 
+# z.val <- unlist(ML.out$z[2:4])
+# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:4), ML.out$n[2:4]),
+#                        z=abs(z.val))
+# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
+# 
+# g2 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
+#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
+#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
+#   theme_bw() + ggtitle(expression(italic(L)==4)) + theme(plot.title = element_text(hjust = 0.5))
+# 
+# g2 <- g2 + geom_abline(intercept = lm.fit$coefficients[1], 
+#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
+# 
+# grid.arrange(g1, g2, ncol = 2)
+# dev.off()
 
 
 

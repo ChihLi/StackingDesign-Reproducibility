@@ -3,8 +3,8 @@ eps <- 1e-8
 
 # fit a Gaussian process model
 GP.fit <- function(X, y, k, g=eps, 
-                  init=rep(10, ncol(X)),
-                  lower=0.1, upper=1000){
+                   init=rep(10, ncol(X)),
+                   lower=0.1, upper=1000){
   # X is the input
   # y is output
   # k is the smoothness parameter in matern kernel
@@ -12,27 +12,26 @@ GP.fit <- function(X, y, k, g=eps,
   # init is the initial value of lengthscale parameter when performing optimization
   # lower is the lower bound of lengthscale parameter when performing optimization
   # upper is the upper bound of lengthscale parameter when performing optimization
-  
   if(is.null(dim(X))) X <- matrix(X, ncol = 1)
   
   y <- scale(y, scale=FALSE)
   
   n <- length(y)
   if(!is.null(k)){ # if the smoothness is given
-    nlsep <- function(par, X, Y) 
+    obj <- function(par, X, Y) 
     {
       theta <- par
       R <- sqrt(distance(t(t(X)*theta)))
       K <- matern.kernel(R, k=k)
       Ki <- solve(K+diag(g,n))
-      ldetK <- determinant(K, logarithm=TRUE)$modulus
-      ll <- - (n/2)*log(t(Y) %*% Ki %*% Y) - (1/2)*ldetK
-      return(-ll)
+
+      loocv <- mean((diag(1/diag(Ki)) %*% Ki %*% Y)^2)
+      return(loocv)
     }
     
     tic <- proc.time()[3]
     
-    outg <- optim(init, nlsep, 
+    outg <- optim(init, obj, 
                   method="L-BFGS-B", lower=lower, upper=upper, X=X, Y=y)
     toc <- proc.time()[3]
     
@@ -43,30 +42,25 @@ GP.fit <- function(X, y, k, g=eps,
     loocv.save <- rep(0,length(k.candidate))
     
     for(i in 1:length(k.candidate)){
-      nlsep <- function(par, X, Y) 
+      obj <- function(par, X, Y) 
       {
         theta <- par
         R <- sqrt(distance(t(t(X)*theta)))
         K <- matern.kernel(R, k=k.candidate[i])
         Ki <- solve(K+diag(g,n))
-        ldetK <- determinant(K, logarithm=TRUE)$modulus
-        ll <- - (n/2)*log(t(Y) %*% Ki %*% Y) - (1/2)*ldetK
-        return(-ll)
+        loocv <- mean((diag(1/diag(Ki)) %*% Ki %*% Y)^2)
+        return(loocv)
       }
       
       tic <- proc.time()[3]
       
-      outg <- optim(init, nlsep,
+      outg <- optim(init, obj,
                     method="L-BFGS-B", lower=lower, upper=upper, X=X, Y=y)
       toc <- proc.time()[3]
       
       theta.save[i,] <- outg$par
       
-      R <- sqrt(distance(t(t(X)*theta.save[i,])))
-      K <- matern.kernel(R, k=k.candidate[i])
-      Ki <- solve(K+diag(g,n))
-      
-      loocv.save[i] <- mean((diag(1/diag(Ki)) %*% Ki %*% y)^2)
+      loocv.save[i] <- outg$value
     }
     k <- k.candidate[which.min(loocv.save)]
     theta <- theta.save[which.min(loocv.save),]

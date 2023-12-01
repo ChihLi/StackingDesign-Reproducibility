@@ -57,18 +57,21 @@ stacking_design <- function(cost, d, n.init, epsilon, alpha, tt=2, MM=1, Lmax, f
       z[[L]] <- y[[L]] - y[[L-1]][1:n.init]
     }
     
-    # if the sample size is too small, k will be given the upper and lower bounds of theta will be narrower
+    # if the sample size is too small, k will be given
     if(is.null(k) & n.init < 10*d) {
       fit[[L]] <- GP.fit(X[[L]], z[[L]], k=3.5, ...)
     }else{
       fit[[L]] <- GP.fit(X[[L]], z[[L]], k=k, ...)
     }
     
-    theta.norm[L] <- sqrt(sum((fit[[L]]$theta)^2))
-    rkhs.norm[L] <- sqrt(t(fit[[L]]$y) %*% fit[[L]]$Ki %*% fit[[L]]$y)
-    r[L] <- (theta.norm[L]^fit[[L]]$k * rkhs.norm[L] / cost[L])^(d/(fit[[L]]$k+d))
-    
-    if(L>1) if(r[L]>r[L-1]) r[1:(L-1)] <- pmax(r[L],r[1:(L-1)])
+    k.min <- min(sapply(fit[1:L], function(x) x$k))
+    for(l in 1:L){
+      theta.norm[l] <- sqrt(sum((fit[[l]]$theta)^2))
+      rkhs.norm[l] <- sqrt(t(fit[[l]]$y) %*% fit[[l]]$Ki %*% fit[[l]]$y)
+      r[l] <- (theta.norm[l]^fit[[l]]$k * rkhs.norm[l] / cost[l])^(d/(k.min+d))
+      
+      if(l>1) if(r[l]>r[l-1]) r[l] <- r[l-1]
+    }
     
     # step (5): determine sample size nl given error tolerance
     search.N <- function(N){
@@ -133,23 +136,22 @@ stacking_design <- function(cost, d, n.init, epsilon, alpha, tt=2, MM=1, Lmax, f
       }else{
         fit[[l]] <- GP.fit(X[[l]], z[[l]], k=k, ...)
       }
-      
-      theta.norm[l] <- sqrt(sum((fit[[l]]$theta)^2))
-      rkhs.norm[l] <- sqrt(t(fit[[l]]$y) %*% fit[[l]]$Ki %*% fit[[l]]$y)
-      r[l] <- (theta.norm[l]^fit[[l]]$k * rkhs.norm[l] / cost[l])^(d/(fit[[l]]$k+d))
-
-      if(l>1) if(r[l]>r[l-1]) r[l] <- r[l-1]
     }
-    
+
     # step (8): see if bias is converged
     if(L < 3) {
       tol.est <- Inf
     }else{
       if(is.null(alpha.set)){
-        df_alpha <- data.frame(mesh_l=rep(MM/tt^(2:L), n[2:L]),
-                               z=abs(unlist(z[2:L])))
-        lm.model <- lm(data=df_alpha,log(z)~log(mesh_l))
-        alpha <- lm.model$coefficients[2]
+        # df_alpha <- data.frame(mesh_l=rep(MM/tt^(2:L), n[2:L]),
+        #                        z=abs(unlist(z[2:L])))
+        # lm.model <- lm(data=df_alpha,log(z)~log(mesh_l))
+        # alpha <- lm.model$coefficients[2]
+        alpha <- rep(0, L-2)
+        for(l in 3:L) {
+          alpha[l-2] <- mean(log(abs(z[[l-1]][1:n[l]]/z[[l]]))/log(tt))
+        }
+        alpha <- mean(alpha)
         alpha.save[L] <- alpha
       }
       if(norm == "L2"){

@@ -4,6 +4,7 @@ library(randtoolbox)
 library(RColorBrewer)
 library(ggplot2)
 library(gridExtra)
+library(lhs)
 source("GP.R")
 source("matern.R")
 source("stacking_design.R")
@@ -22,7 +23,7 @@ f <- function(X, l, MM, tt, return.time=FALSE){
   if(return.time) return(list(value=dfm[,4],time=dfm[,5])) else return(dfm[,4])
 }
 
-cost <- NULL
+cost <- c(0.75,1.07,2.13,11.51) # this should be NULL, but for the sake of reproducibilty, I used the saved costs
 d <- 2              # d: dimension of X (scalar)
 n.init <- 5*d
 alpha <- NULL
@@ -38,6 +39,8 @@ log.fg <- TRUE
 set.seed(1)
 X.test <- maximinLHS(20,2)
 y.test <- f(X.test,l=5, MM, tt, return.time=TRUE)
+# load("2d_jet_blade_true.Rdata")
+# y.test <- true.save
 
 ML.out <- stacking_design(cost, d, n.init, epsilon=5, alpha, 
                           tt, MM, Lmax, f, k, xnew, n.max, 
@@ -101,47 +104,47 @@ pdf("blade_design_size.pdf", width=10, height=2)
 g1 <- ggplot(sample.size.df[1:4,], aes(x = name,y = value ,fill = stage)) +
   geom_bar(stat = "identity") +
   labs(y = "sample size", x = "") + 
-  ylim(c(0,83)) + 
+  ylim(c(0,43)) + 
   scale_x_discrete(labels=c(expression(n[1]), expression(n[2]), expression(n[3]), expression(n[4]))) +
   scale_fill_manual(breaks=c(1:4), values = c("lightblue1","lightblue2", "lightblue3", "lightblue4")) +
   coord_flip() + theme( panel.background = element_blank(), legend.position = "none")
 
-g1 <- g1 + geom_text(aes(name, total + 3, label = total, fill = NULL), size = 4, data = sample.size.df[sample.size.df$stage==1 & sample.size.df$value > 0,])
+g1 <- g1 + geom_text(aes(name, total + 3, label = total, fill = NULL), size = 4, data = sample.size.df[sample.size.df$stage==1 & sample.size.df$total > 0,])
 g1 <- g1 + theme(axis.text.y = element_text(size = 12))
 
 g2 <- ggplot(sample.size.df[1:8,], aes(x = name,y = value ,fill = stage)) +
   geom_bar(stat = "identity") +
   labs(y = "sample size", x = "") + 
-  ylim(c(0,83)) + 
+  ylim(c(0,43)) + 
   scale_x_discrete(labels=c(expression(n[1]), expression(n[2]), expression(n[3]), expression(n[4]))) +
   scale_fill_manual(breaks=c(1:4), values = c("lightblue1","lightblue2", "lightblue3", "lightblue4")) +
   coord_flip() + theme( panel.background = element_blank(), legend.position = "none")
 
 g2 <- g2 + geom_text(aes(name, total + 3, label = total, fill = NULL), size = 4,
-                     data = sample.size.df[sample.size.df$stage==2 & sample.size.df$value > 0,])
+                     data = sample.size.df[sample.size.df$stage==2 & sample.size.df$total > 0,])
 g2 <- g2 + theme(axis.text.y = element_text(size = 12))
 
 g3 <- ggplot(sample.size.df[1:12,], aes(x = name,y = value ,fill = stage)) +
   geom_bar(stat = "identity") +
   labs(y = "sample size", x = "") + 
-  ylim(c(0,83)) + 
+  ylim(c(0,43)) + 
   scale_x_discrete(labels=c(expression(n[1]), expression(n[2]), expression(n[3]), expression(n[4]))) +
   scale_fill_manual(breaks=c(1:4), values = c("lightblue1","lightblue2", "lightblue3", "lightblue4")) +
   coord_flip() + theme( panel.background = element_blank(), legend.position = "none")
 
 g3 <- g3 + geom_text(aes(name, total + 3, label = total, fill = NULL), size = 4,
-                     data = sample.size.df[sample.size.df$stage==3,])
+                     data = sample.size.df[sample.size.df$stage==3 & sample.size.df$total > 0,])
 g3 <- g3 + theme(axis.text.y = element_text(size = 12))
 
 g4 <- ggplot(sample.size.df, aes(x = name,y = value ,fill = stage)) +
   geom_bar(stat = "identity") +
   labs(y = "sample size", x = "") + 
-  ylim(c(0,83)) + 
+  ylim(c(0,43)) + 
   scale_x_discrete(labels=c(expression(n[1]), expression(n[2]), expression(n[3]), expression(n[4]))) +
   scale_fill_manual(breaks=c(1:4), values = c("lightblue1","lightblue2", "lightblue3", "lightblue4")) +
   coord_flip() + theme( panel.background = element_blank(), legend.position = "none")
 
-g4 <- g4 + geom_text(aes(name, total + c(1,5,5,5), label = total, fill = NULL), size = 4,
+g4 <- g4 + geom_text(aes(name, total + c(3,3,3,3), label = total, fill = NULL), size = 4,
                      data = sample.size.df[sample.size.df$stage==4,])
 g4 <- g4 + theme(axis.text.y = element_text(size = 12))
 
@@ -149,40 +152,40 @@ grid.arrange(g1, g2, g3, g4, ncol = 4)
 dev.off()
 
 
-# Figure 12
-pdf("alpha_estimation_blade.pdf", width=6, height=2.5)
-z.val <- c(ML.out$z[[2]][1:ML.out$n.save[[3]][2]], ML.out$z[[3]][1:ML.out$n.save[[3]][3]])
-df_alpha <- data.frame(mesh_l=rep(1/tt^(2:3), ML.out$n.save[[3]][2:3]),
-                       z=abs(z.val))
-lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-
-g1 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-  geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-  xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-  theme_bw()+ggtitle(expression(italic(L)==3)) + theme(plot.title = element_text(hjust = 0.5))
-
-g1 <- g1 + geom_abline(intercept = lm.fit$coefficients[1], 
-                       slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-
-z.val <- unlist(ML.out$z[2:4])
-df_alpha <- data.frame(mesh_l=rep(1/tt^(2:4), ML.out$n[2:4]),
-                       z=abs(z.val))
-lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
-
-g2 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
-  geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
-  xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
-  theme_bw() + ggtitle(expression(italic(L)==4)) + theme(plot.title = element_text(hjust = 0.5))
-
-g2 <- g2 + geom_abline(intercept = lm.fit$coefficients[1], 
-                       slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
-
-grid.arrange(g1, g2, ncol = 2)
-dev.off()
+# Figure 12 (no longer needed)
+# pdf("alpha_estimation_blade.pdf", width=6, height=2.5)
+# z.val <- c(ML.out$z[[2]][1:ML.out$n.save[[3]][2]], ML.out$z[[3]][1:ML.out$n.save[[3]][3]])
+# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:3), ML.out$n.save[[3]][2:3]),
+#                        z=abs(z.val))
+# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
+# 
+# g1 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
+#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
+#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
+#   theme_bw()+ggtitle(expression(italic(L)==3)) + theme(plot.title = element_text(hjust = 0.5))
+# 
+# g1 <- g1 + geom_abline(intercept = lm.fit$coefficients[1], 
+#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
+# 
+# z.val <- unlist(ML.out$z[2:4])
+# df_alpha <- data.frame(mesh_l=rep(1/tt^(2:4), ML.out$n[2:4]),
+#                        z=abs(z.val))
+# lm.fit <- lm(log(z) ~ log(mesh_l), data=df_alpha)
+# 
+# g2 <- ggplot(df_alpha, aes(x=log(mesh_l), y=log(z), group=log(mesh_l))) + 
+#   geom_boxplot(fill='#A4A4A4', color="black", width=0.25)+
+#   xlab(expression(log(italic(T^-l))))+ylab(bquote("log|" ~ f[italic(l)] ~ "(x) -" ~ f[italic(l)-1] ~ "(x)|"))+#ylab(bquote("log|" ~ z[italic(l)] ~  "|"))+
+#   theme_bw() + ggtitle(expression(italic(L)==4)) + theme(plot.title = element_text(hjust = 0.5))
+# 
+# g2 <- g2 + geom_abline(intercept = lm.fit$coefficients[1], 
+#                        slope = lm.fit$coefficients[2], color = "red", linetype = "dashed") 
+# 
+# grid.arrange(g1, g2, ncol = 2)
+# dev.off()
 
 
 # Figure 13
-pdf("blade_prediction.pdf", width=7.5, height = 3.5)
+pdf("blade_prediction.pdf", width=7.5, height = 3.3)
 par(mfrow=c(1,2))
 par(mar=c(2,1,0,0))
 pmat <- persp(seq(0,1,0.02)*0.5+0.25, seq(0,1,0.02)*0.5+0.25, matrix(ML.out$mean, 51, 51), col="lightblue", 
@@ -197,10 +200,12 @@ text(label.pos$x, label.pos$y, labels="pressure (MPa)", adj=c(0, NA), srt=62, ce
 
 mypoints <- trans3d(X.test[,1]*0.5+0.25,X.test[,2]*0.5+0.25,y.test$value, pmat = pmat)
 points(mypoints, pch = 16,col = 2)
-par(mar=c(4,4,1,1))
+par(mar=c(4,4,1,1.5))
 fields::image.plot(seq(0,1,0.02)*0.5+0.25, seq(0,1,0.02)*0.5+0.25, 
-                   matrix(sqrt(ML.out$s2)*qnorm(0.975)+2*ML.out$B[,ML.out$L], 51, 51),
-                   xlab="pressure (MPa)", ylab="suction (MPa)", col = hcl.colors(12, "YlOrRd", rev = TRUE))
+                   matrix(rowSums(sqrt(t(t(ML.out$V[,1:ML.out$L])*ML.out$n[1:ML.out$L])))+ML.out$B[,ML.out$L], 51, 51),
+                   xlab="pressure (MPa)", ylab="suction (MPa)", 
+                   legend.mar=6.5,
+                   col = hcl.colors(12, "YlOrRd", rev = TRUE))
 dev.off()
 
 
