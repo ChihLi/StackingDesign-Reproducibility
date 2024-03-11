@@ -1,4 +1,4 @@
-This instruction aims to reproduce the results in the paper “*Stacking designs: designing multi-fidelity computer experiments with target predictive accuracy*”
+This instruction aims to reproduce the results in the paper “*Stacking designs: designing multifidelity computer experiments with target predictive accuracy*”
 by [Sung, Ji, Mak, Wang, and Tang
 (2024)](https://epubs.siam.org/doi/full/10.1137/22M1532007), SIAM/ASA Journal on Uncertainty Quantification, 12(1), 157-181.
 
